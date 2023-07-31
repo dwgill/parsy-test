@@ -21,7 +21,7 @@ ExprVal = TypeVar("ExprVal", bound=str | float | int | bool | None)
 
 
 class AbstractExpr(ABC, Generic[ExprVal]):
-    value: list[ExprVal]
+    value: tuple[ExprVal, ...]
 
     def is_empty(self):
         return len(self.value) == 0
@@ -58,17 +58,17 @@ class TableReference:
 
 @dataclass(frozen=True, slots=True)
 class NumExpr(AbstractExpr):
-    value: list[float | None] | list[int | None]
+    value: tuple[float | None, ...] | tuple[int | None, ...]
 
 
 @dataclass(frozen=True, slots=True)
 class StrExpr(AbstractExpr):
-    value: list[str]
+    value: tuple[str, ...]
 
 
 @dataclass(frozen=True, slots=True)
 class BoolNullExpr(AbstractExpr):
-    value: list[bool | None]
+    value: tuple[bool | None, ...]
 
 
 Expr = NumExpr | StrExpr | BoolNullExpr
@@ -82,7 +82,7 @@ class TablePredicate:
 
 @dataclass(frozen=True, slots=True)
 class TablePredicateList:
-    predicates: list[TablePredicate]
+    predicates: tuple[TablePredicate, ...]
 
 
 # Parsers
@@ -141,13 +141,13 @@ bool_null_token_list = bool_or_null.sep_by(string(","), min=1).desc(
 
 # Convert the list from the parser to a tuple
 num_expr = num_or_null_token_list.map(
-    lambda values: NumExpr(unique_sort_list(values))
+    lambda exprs: NumExpr(tuple(unique_sort_list(exprs)))
 ).desc("number list expression")
 str_expr = str_or_null_token_list.map(
-    lambda values: StrExpr(unique_sort_list(values))
+    lambda exprs: StrExpr(tuple(unique_sort_list(exprs)))
 ).desc("string list expression")
 bool_expr = bool_null_token_list.map(
-    lambda values: BoolNullExpr(unique_sort_list(values))
+    lambda exprs: BoolNullExpr(tuple(unique_sort_list(exprs)))
 ).desc("true/false list expression")
 
 expr = (str_expr | num_expr | bool_expr).desc("expression")
@@ -165,6 +165,6 @@ predicate = (
 
 predicate_list = (
     predicate.sep_by(string(";"), min=1)
-    .map(TablePredicateList)
+    .map(lambda predicates: TablePredicateList(tuple(predicates)))
     .desc("semicolon delimited list of predicates")
 )
