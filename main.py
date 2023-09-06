@@ -65,6 +65,7 @@ table_reference = (
     .combine_dict(TableReference)
 )
 
+# Reference: https://www.regular-expressions.info/floatingpoint.html
 float_token = regex(r"[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?").map(float).desc("number")
 
 float_token_list = delimited_list(float_token, ",").map(tuple)
@@ -95,6 +96,9 @@ value_token_list = (num_token_list | text_token_list).desc(
 
 table_predicate = (
     seq(
+        # The keyword args' order matters
+        # The keyword args' names correspond to the fields of the TablePredicate class
+        # Keywords with leading underscore _ are discarded
         ref=table_reference,
         _colon=string(":"),
         expr=value_token_list,
