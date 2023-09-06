@@ -80,7 +80,7 @@ num_token_list = (
     .map(NumExpr)
 )
 
-text_token = regex(r"[^,]").at_least(1).concat().desc("string terminated by a comma")
+text_token = regex(r"[^,;:]+").desc("string terminated by a comma")
 
 text_token_list = (
     delimited_list(text_token, ",")
